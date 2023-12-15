@@ -17,20 +17,22 @@ public class StockService{
     
     public async Task<bool> Restock(RestockEventDTO restock)
     {
-        if(restock.cantidad <= 0){
+        if(restock.Cantidad <= 0){
             return false;
         }
 
-        Product? product = await _productService.GetProductById(restock.producto);
+        Product? product = await _productService.GetProductById(restock.Producto);
 
         if(product == null){
             return false;
         }
 
-        StockModificationDTO stockModification = new ();
-        stockModification.IdProducto = restock.producto;
-        stockModification.Cantidad = restock.cantidad;
-        stockModification.TipoModificacion = TipoModificacion.adicion;
+        StockModificationDTO stockModification = new()
+        {
+            IdProducto = restock.Producto,
+            Cantidad = restock.Cantidad,
+            TipoModificacion = TipoModificacion.adicion
+        };
 
         var productResult = await _productService.UpdateStock(stockModification);
         if(!productResult)
@@ -38,10 +40,12 @@ public class StockService{
             return false;
         }
 
-        Restock restockToDb = new();
-        restockToDb.IdProducto = product.IdProducto;
-        restockToDb.Cantidad  = restock.cantidad;
-        restockToDb.Fecha = restock.fecha;
+        Restock restockToDb = new()
+        {
+            IdProducto = product.IdProducto,
+            Cantidad = restock.Cantidad,
+            Fecha = restock.Fecha
+        };
 
         var result = await _context.Restocks.AddAsync(restockToDb);
         var saveResult = await _context.SaveChangesAsync();
@@ -56,8 +60,8 @@ public class StockService{
     }
 
     public async Task<IEnumerable<Product>> GetProductsForRestock(){
-        return _context.Products.Include(product => product.CategoriaNavigation)
-        .Where(product => product.CategoriaNavigation.PuntoSurtir <= product.CantidadStock);
+        return await _context.Products.Include(product => product.CategoriaNavigation)
+        .Where(product => product.CantidadStock <= product.CategoriaNavigation!.PuntoSurtir).ToListAsync();
     }
 
     public async Task<IEnumerable<Restock>> GetAllRestocks(){

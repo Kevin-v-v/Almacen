@@ -2,6 +2,7 @@ using Almacen.Services;
 using Almacen.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -14,9 +15,15 @@ builder.Services.AddSwaggerGen();
 // //DbContext
 builder.Services.AddSqlServer<StoreContext>(builder.Configuration.GetConnectionString("dev"));
 
+builder.Services.AddControllers().AddJsonOptions(x =>
+                x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+
+
 //Service Layer
 builder.Services.AddScoped<ClientService>();
-
+builder.Services.AddScoped<StockService>();
+builder.Services.AddScoped<SaleService>();
+builder.Services.AddScoped<ProductService>();
 
 var app = builder.Build();
 

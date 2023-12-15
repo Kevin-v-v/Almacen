@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace Almacen.Data.Models;
-
+[DataContract(IsReference = true)]
 public partial class Product
 {
     public int IdProducto { get; set; }

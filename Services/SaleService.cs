@@ -7,13 +7,15 @@ using System.Collections.ObjectModel;
 
 namespace Almacen.Services;
 
-public class SalesService{
+public class SaleService{
     private readonly StoreContext _context;
     private readonly ProductService _productService;
+    private readonly ClientService _clientService;
 
-    public SalesService(StoreContext context, ProductService productService){
+    public SaleService(StoreContext context, ProductService productService, ClientService clientService){
         _context = context;
         _productService = productService;
+        _clientService = clientService;
     }
     
     public async Task<IEnumerable<Sale>> GetAllSales(){
@@ -22,7 +24,7 @@ public class SalesService{
 
     public async Task<bool> RegisterSale(Sale sale){
 
-        if(!await _productService.CheckStock((int)sale.IdProducto, sale.Cantidad))
+        if(!await _productService.CheckStock((int)sale.IdProducto!, sale.Cantidad) || (await _clientService.GetClientById(sale.IdCliente) == null))
         {
             return false;
         }
@@ -34,13 +36,9 @@ public class SalesService{
 
         var result = await _productService.UpdateStock(stockModification);
         
-        var saveResult = await _context.SaveChangesAsync();
-        if(saveResult <= 0){
-            return false;
-        }
 
         await _context.Sales.AddAsync(sale);
-        saveResult = await _context.SaveChangesAsync();
+        var saveResult = await _context.SaveChangesAsync();
         if(saveResult <= 0){
             stockModification.TipoModificacion = TipoModificacion.adicion;
             await _productService.UpdateStock(stockModification);
@@ -72,6 +70,9 @@ public class SalesService{
         }
         
         foreach(Product product in products){
+            if(ventasPorProducto[product.IdProducto] == 0){
+                continue;
+            }
             ProductDailyReportDTO currentProductToReport = new()
             {
                 IdProducto = product.IdProducto,

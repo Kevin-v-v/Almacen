@@ -1,7 +1,7 @@
 namespace Almacen.Data.DTOs;
 
 public class RestockEventDTO{
-    public int producto;
-    public int cantidad;
-    public DateTime fecha;
+    public int Producto {get; set;}
+    public int Cantidad {get; set;}
+    public DateTime Fecha {get; set;}
 }
